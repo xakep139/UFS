@@ -5,6 +5,10 @@ VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UFSApp", "UFSApp\UFSApp.csproj", "{0E53B671-EBE3-49C8-BE10-2C76E3FE5BC4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestUploader", "TestUploader\TestUploader.csproj", "{F1D590F2-7A21-490E-80D5-43DB0E0BDB9E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UVAFileStore", "UVAFileStore\UVAFileStore.csproj", "{31F635D8-E221-43C3-A869-8A732AE64533}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{0E53B671-EBE3-49C8-BE10-2C76E3FE5BC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0E53B671-EBE3-49C8-BE10-2C76E3FE5BC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0E53B671-EBE3-49C8-BE10-2C76E3FE5BC4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F1D590F2-7A21-490E-80D5-43DB0E0BDB9E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F1D590F2-7A21-490E-80D5-43DB0E0BDB9E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F1D590F2-7A21-490E-80D5-43DB0E0BDB9E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F1D590F2-7A21-490E-80D5-43DB0E0BDB9E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{31F635D8-E221-43C3-A869-8A732AE64533}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{31F635D8-E221-43C3-A869-8A732AE64533}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{31F635D8-E221-43C3-A869-8A732AE64533}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{31F635D8-E221-43C3-A869-8A732AE64533}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

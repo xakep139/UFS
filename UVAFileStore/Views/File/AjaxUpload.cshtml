@@ -1,0 +1,58 @@
+﻿@{
+    ViewBag.Title = "Upload";
+}
+
+<h3>Выберите файл для загрузки Ajax:</h3>
+<div>
+    <input type="file" name="uploadFile" id="uploadFile" /><br />
+    <button id="submit">Загрузить</button>
+</div>
+
+<!-- Место вывода сообщений загрузки -->
+<div id="messages"></div>
+
+@section scripts{
+    <script type="text/javascript">
+        $('#submit').on('click', function (e) {
+            e.preventDefault();
+            var files = document.getElementById('uploadFile').files;
+            var messages = $('#messages');          // Область уведомлений.
+
+            if (files.length > 0) {
+                if (window.FormData !== undefined) {
+                    var data = new FormData();
+                    for (var x = 0; x < files.length; x++) {
+                        data.append("file" + x, files[x]);
+                    }
+
+                    $.ajax({
+                        type: "POST",
+                        url: '@Url.Action("AjaxUpload", "File")',
+                        contentType: false,
+                        processData: false,
+                        data: data,
+                        // Выполняем до отсылки файлов.
+                        beforeSend: function () {
+                            // Раскомментировать следующую строчку, если submit вызывается из javascript.
+                            //$.fn.MultiFile.disableEmpty();
+
+                            // Выводим сообщение о загрузке. Сюда лучше прикрутить jQuery.blockUI, но оставляю для наглядности.
+                            messages.html('Загружаем файл(ы)...');
+                        },
+                        success: function (result) {
+                            // Очищаем сообщение о загрузке.
+                            messages.empty();
+                            alert(result);
+                        },
+                        error: function (xhr, status, p3) {
+                            alert(xhr.responseText);
+                        }
+                    });
+                }
+                else {
+                    alert("Браузер не поддерживает загрузку файлов HTML5!");
+                }
+            }
+        });
+    </script>
+}

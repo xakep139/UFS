@@ -1,0 +1,14 @@
+﻿
+@{
+    ViewBag.Title = "Выберите способ загрузки";
+}
+
+<h2>@ViewBag.Title</h2>
+
+<ul>
+    <li>@Html.ActionLink("Загрузить", "Upload", "File")</li>
+    <li>@Html.ActionLink("Множественная загрузка", "Uploads", "File")</li>
+    <li>@Html.ActionLink("Загрузка Ajax", "AjaxUpload", "File")</li>
+    <li>@Html.ActionLink("Загрузка Ajax2", "Upload3", "File")</li>
+</ul>
+

@@ -1,0 +1,19 @@
+﻿@{
+    ViewBag.Title = "Upload";
+}
+<h3>Выберите файл для загрузки:</h3>
+@using (Html.BeginForm("Upload", "File", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    <div>
+        <label for="uploadFile">Загрузить файл:</label>
+        <input type="file" id="uploadFile" name="uploadFile" class="btn btn-default">
+        <p class="help-block">Загружайте файлы размером не более 50 МБ.</p>
+    </div>
+    <div>
+        <button id="submit">Загрузить</button>
+    </div>
+}
+
+<div class="text-info">
+    @ViewBag.Message
+</div>
