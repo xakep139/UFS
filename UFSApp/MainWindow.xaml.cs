@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
-using System.Globalization;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 
 namespace UFSApp
 {
@@ -28,7 +26,18 @@ namespace UFSApp
                 rootPath = @"C:\Проверки";
             }
 
-            LoadDirectories(rootPath, revisionsTreeView.Items);
+            try
+            {
+                if (!Directory.Exists(rootPath))
+                {
+                    Directory.CreateDirectory(rootPath);
+                }
+                LoadDirectories(rootPath, revisionsTreeView.Items);
+            }
+            catch (Exception exc)
+            {
+                MessageBox.Show(exc.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         void LoadDirectories(string path, ItemCollection Items)
