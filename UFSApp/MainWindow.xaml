@@ -4,7 +4,7 @@
         xmlns:my="clr-namespace:UFSApp"
         Title="ПО ЕФХ" Height="500" Width="700">
     <Window.Resources>
-        <Style  TargetType="{x:Type ListBoxItem}">
+        <Style TargetType="{x:Type ListBoxItem}">
             <Style.Triggers>
                 <Trigger Property="ItemsControl.AlternationIndex" Value="0">
                     <Setter Property="Background" Value="#19f39611"></Setter>
@@ -28,25 +28,28 @@
         </StatusBar>
         <Grid>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1*"/>
-                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="1*" MinWidth="100"/>
+                <ColumnDefinition Width="2*" MinWidth="100"/>
             </Grid.ColumnDefinitions>
             <GroupBox Header="Проверки">
-                <TreeView x:Name="revisionsTreeView" BorderThickness="0" ItemsSource="{Binding}">
-                    <!--<TreeView.Resources>
-                        <my:MyImageConverter x:Key="myConverter" />
-                    </TreeView.Resources>-->
-                    <TreeView.ItemTemplate>
-                        <DataTemplate>
-                            <StackPanel>
-                                <Image Name="img" Source="Images/folder_32.jpg" Stretch="Fill"/>
-                                <TextBlock Text="{Binding Path=Header}"/>
-                            </StackPanel>
-                        </DataTemplate>
-                    </TreeView.ItemTemplate>
+                <TreeView x:Name="revisionsTreeView" ItemsSource="{Binding}" BorderThickness="0">
+                    <TreeView.Resources>
+                        <Style TargetType="{x:Type my:FolderTreeViewItem}">
+                            <Setter Property="HeaderTemplate">
+                                <Setter.Value>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Image Margin="0" Source="Images/folder.png" Width="16" Height="16"></Image>
+                                            <TextBlock Text="{Binding}"></TextBlock>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </TreeView.Resources>
                 </TreeView>
             </GroupBox>
-            <GridSplitter Width="3"/>
+            <GridSplitter Width="5"/>
             <GroupBox Header="Материалы" Grid.Column="1">
                 <ListBox x:Name="itemsListBox" ItemsSource="{Binding}" AlternationCount="2">
                     <ListBox.ItemTemplate>

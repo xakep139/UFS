@@ -1,9 +1,15 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Configuration;
+using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Markup;
 
 namespace UFSApp
 {
@@ -12,27 +18,71 @@ namespace UFSApp
     /// </summary>
     public partial class MainWindow : Window
     {
+        private const uint maxLevel = 4;
+        private const char separator = '|';
+
+        private string rootPath;
+        private string[] years;
+        private string[] types;
+        private string[] stages;
+
+        private ObservableCollection<FolderTreeViewItem> items = new ObservableCollection<FolderTreeViewItem>();
+
         public MainWindow()
         {
             InitializeComponent();
+
+            FrameworkElement.LanguageProperty.OverrideMetadata(
+                typeof(FrameworkElement),
+                new FrameworkPropertyMetadata(
+                    XmlLanguage.GetLanguage(CultureInfo.CurrentCulture.IetfLanguageTag)
+                )
+            );
+
+            LoadConfig();
             ScanDirectory();
+            revisionsTreeView.DataContext = items;
         }
 
-        void ScanDirectory()
+        private void LoadConfig()
         {
-            string rootPath = ConfigurationManager.AppSettings["RootPath"];
+            rootPath = ConfigurationManager.AppSettings["RootPath"];
             if (string.IsNullOrEmpty(rootPath))
             {
                 rootPath = @"C:\Проверки";
             }
 
+            var tmp = ConfigurationManager.AppSettings["Years"];
+            if (string.IsNullOrEmpty(tmp))
+            {
+                tmp = "2012|2013|2014|2015|2016";
+            }
+            years = tmp.Split(separator);
+
+            tmp = ConfigurationManager.AppSettings["ControlTypes"];
+            if (string.IsNullOrEmpty(tmp))
+            {
+                tmp = "Мониторинг|ТЗ|ЦЗ";
+            }
+            types = tmp.Split(separator);
+
+            tmp = ConfigurationManager.AppSettings["Stages"];
+            if (string.IsNullOrEmpty(tmp))
+            {
+                tmp = "1. Подготовка|2. Проведение|3. Итоги|4. Реализация|5. Контроль";
+            }
+            stages = tmp.Split(separator);
+        }
+
+        void ScanDirectory()
+        {
             try
             {
                 if (!Directory.Exists(rootPath))
                 {
                     Directory.CreateDirectory(rootPath);
                 }
-                LoadDirectories(rootPath, revisionsTreeView.Items);
+                LoadDirectories(rootPath, items, 1);
             }
             catch (Exception exc)
             {
@@ -40,28 +90,55 @@ namespace UFSApp
             }
         }
 
-        void LoadDirectories(string path, ItemCollection Items)
+        void LoadDirectories(string path, IList Items, uint level)
         {
             var directories = Directory.GetDirectories(path);
-            foreach (var item in directories)
+            foreach (var curDir in directories)
             {
-                DirectoryInfo dInfo = new DirectoryInfo(item);
-                var node = new CustomTreeViewItem() { Header = dInfo.Name, Tag = dInfo, Image = "" };
-                var currentPath = Path.Combine(path, item);
-                if (Directory.GetDirectories(currentPath).Length > 0)
+                var dInfo = new DirectoryInfo(curDir);
+                if (!CheckDirLevel(dInfo.Name, level))
                 {
-                    LoadDirectories(currentPath, node.Items);
+                    continue;
                 }
-                else
+                var node = new FolderTreeViewItem() { Header = dInfo.Name, Tag = dInfo, Image = "Images/folder.png" };
+                if (level < maxLevel)
                 {
-                    //LoadFiles(currentPath, node.Items);
-                    var list = LoadFiles(currentPath);
-                    if (list.Count > 0)
-                    {
-                        itemsListBox.DataContext = list;
-                    }
+                    LoadDirectories(curDir, node.Items, level + 1);
+                }
+                else    //Каталоги этапов проверки
+                {
+                    node.Selected += node_Selected;
                 }
                 Items.Add(node);
+            }
+        }
+
+        void node_Selected(object sender, RoutedEventArgs e)
+        {
+            var node = sender as FolderTreeViewItem;
+            if (node != null && node.Tag as DirectoryInfo != null)
+            {
+                var tag = node.Tag as DirectoryInfo;
+                var list = LoadFiles(tag.FullName);
+                itemsListBox.DataContext = list;
+            }
+        }
+
+        private bool CheckDirLevel(string dirName, uint level)
+        {
+            uint tmp;
+            switch (level)
+            {
+                case 1: //Год проверки
+                    return years.Contains(dirName);
+                case 2: //Тип проверки
+                    return types.Contains(dirName);
+                case 3: //Номер проверки
+                    return uint.TryParse(dirName, out tmp);
+                case 4: //Этап проверки
+                    return stages.Contains(dirName);
+                default:
+                    return false;
             }
         }
 
@@ -78,7 +155,7 @@ namespace UFSApp
 
         List<Item> LoadFiles(string path)
         {
-            List<Item> list = new List<Item>();
+            var list = new List<Item>();
             var files = Directory.GetFiles(path);
             foreach (var file in files)
             {
