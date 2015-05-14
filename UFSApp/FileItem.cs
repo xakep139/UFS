@@ -2,7 +2,7 @@
 
 namespace UFSApp
 {
-    public class Item
+    public class FileItem
     {
         public string Name { get; set; }
 

@@ -8,7 +8,6 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 using System.Windows.Markup;
 
 namespace UFSApp
@@ -100,7 +99,7 @@ namespace UFSApp
                 {
                     continue;
                 }
-                var node = new FolderTreeViewItem() { Header = dInfo.Name, Tag = dInfo, Image = "Images/folder.png" };
+                var node = new FolderTreeViewItem() { Header = dInfo.Name, Tag = dInfo };
                 if (level < maxLevel)
                 {
                     LoadDirectories(curDir, node.Items, level + 1);
@@ -153,18 +152,18 @@ namespace UFSApp
             }
         }
 
-        List<Item> LoadFiles(string path)
+        List<FileItem> LoadFiles(string path)
         {
-            var list = new List<Item>();
+            var list = new List<FileItem>();
             var files = Directory.GetFiles(path);
             foreach (var file in files)
             {
                 var fInfo = new FileInfo(file);
-                if (fInfo.Attributes == (fInfo.Attributes | FileAttributes.Hidden))
+                if ((fInfo.Attributes & FileAttributes.Hidden) > 0)
                 {
                     continue;
                 }
-                var item = new Item() { Name = fInfo.Name, FInfo = fInfo };
+                var item = new FileItem() { Name = fInfo.Name, FInfo = fInfo };
                 list.Add(item);
             }
             return list;

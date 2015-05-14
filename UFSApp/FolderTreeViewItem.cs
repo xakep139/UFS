@@ -4,6 +4,6 @@ namespace UFSApp
 {
     public class FolderTreeViewItem : TreeViewItem
     {
-        public string Image { get; set; }
+        public string ImageURL { get; set; }
     }
 }
