@@ -1,11 +1,14 @@
-﻿<Window x:Class="UFSApp.MainWindow"
+﻿<Window x:Name="mainWindow" x:Class="UFSApp.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:my="clr-namespace:UFSApp"
-        Title="ПО ЕФХ" Height="500" Width="700">
+        Title="ПО ЕФХ" MinHeight="500" MinWidth="800">
     <Window.Resources>
         <my:ImagePathConverter x:Key="ImagePathConverter" />
-        <Style TargetType="{x:Type ListBoxItem}">
+        <CollectionViewSource x:Name="filesViewSource" x:Key="filesViewSource"
+                              Source="{Binding ElementName=mainWindow, Path=FilesList}"
+                              Filter="filesViewSource_Filter"/>
+        <!--<Style TargetType="{x:Type ListBoxItem}">
             <Style.Triggers>
                 <Trigger Property="ItemsControl.AlternationIndex" Value="0">
                     <Setter Property="Background" Value="#19f39611"></Setter>
@@ -14,7 +17,18 @@
                     <Setter Property="Background" Value="#19000000"></Setter>
                 </Trigger>
             </Style.Triggers>
-        </Style>
+        </Style>-->
+        <!--<Style x:Key="DataGridCentering" TargetType="{x:Type DataGridCell}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type DataGridCell}">
+                        <Grid Background="{TemplateBinding Background}">
+                            <ContentPresenter VerticalAlignment="Center" />
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>-->
         <Style TargetType="{x:Type my:FolderTreeViewItem}">
             <Setter Property="HeaderTemplate">
                 <Setter.Value>
@@ -28,7 +42,6 @@
             </Setter>
         </Style>
     </Window.Resources>
-
     <DockPanel>
         <TabControl DockPanel.Dock="Top" Height="100">
             <TabItem Header="Главная"/>
@@ -36,20 +49,90 @@
             <TabItem Header="Файл"/>
             <TabItem Header="Хранилище"/>
         </TabControl>
+        <TextBox DockPanel.Dock="Top" Name="fNameFilter" TextChanged="fNameFilter_TextChanged" />
         <StatusBar DockPanel.Dock="Bottom" Height="25">
             <TextBlock>(C) Unified File Storage - Sberbank 2015</TextBlock>
         </StatusBar>
         <Grid>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1*" MinWidth="100"/>
+                <ColumnDefinition Width="1*" MinWidth="190" MaxWidth="190"/>
                 <ColumnDefinition Width="2*" MinWidth="100"/>
             </Grid.ColumnDefinitions>
             <GroupBox Header="Проверки">
-                <TreeView x:Name="revisionsTreeView" ItemsSource="{Binding}" BorderThickness="0"/>
+                <TreeView x:Name="revisionsTreeView" ItemsSource="{Binding ElementName=mainWindow, Path=FolderTree}" BorderThickness="0" />
             </GroupBox>
             <GridSplitter Width="5"/>
             <GroupBox Header="Материалы" Grid.Column="1">
-                <ListBox x:Name="itemsListBox" ItemsSource="{Binding}" AlternationCount="2">
+                <ListView x:Name="lvFiles" ItemsSource="{Binding Source={StaticResource filesViewSource}}">
+                    <ListView.View>
+                        <GridView x:Name="gvFiles" AllowsColumnReorder="False">
+                            <GridViewColumn>
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Grid HorizontalAlignment="Stretch">
+                                            <CheckBox x:Name="chkAvg" IsChecked="{Binding Checked}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                                <CheckBox x:Name="cbSelectAll" Checked="cbSelectAll_Checked" Unchecked="cbSelectAll_Checked"></CheckBox>
+                                <!--<CheckBox x:Name="chkAvgSelectAll" Content="Avg" 
+                                          Tag="CalcAvg" Command="SelectAllCheckedCommand" 
+                                          ToolTip="Select All">
+                                    <MultiBinding Converter="{StaticResource SelectAllConverter}">
+                                        <Binding Path="Tag" RelativeSource="{RelativeSource self}" />
+                                        <Binding Path="IsChecked" RelativeSource="{RelativeSource self}" />
+                                    </MultiBinding>
+                                </CheckBox>-->
+                            </GridViewColumn>
+                            <GridViewColumn Width="200" DisplayMemberBinding="{Binding Path=FInfo.Name}">
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Tag="FInfo.Name" Click="lvFilesColumnHeader_Click">Файл</GridViewColumnHeader>
+                                </GridViewColumn.Header>
+                            </GridViewColumn>
+
+                            <GridViewColumn Width="70" DisplayMemberBinding="{Binding Path=Size}">
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Tag="Size" Click="lvFilesColumnHeader_Click">Размер</GridViewColumnHeader>
+                                </GridViewColumn.Header>
+                            </GridViewColumn>
+
+                            <GridViewColumn Width="120" DisplayMemberBinding="{Binding Path=FInfo.LastWriteTime}">
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Tag="FInfo.LastWriteTime" Click="lvFilesColumnHeader_Click">Дата создания</GridViewColumnHeader>
+                                </GridViewColumn.Header>
+                            </GridViewColumn>
+
+                            <GridViewColumn Width="120" DisplayMemberBinding="{Binding Path=FInfo.CreationTime}">
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Tag="FInfo.CreationTime" Click="lvFilesColumnHeader_Click">Дата изменения</GridViewColumnHeader>
+                                </GridViewColumn.Header>
+                            </GridViewColumn>
+
+                            <GridViewColumn Width="150" DisplayMemberBinding="{Binding Path=Owner}">
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Tag="Owner" Click="lvFilesColumnHeader_Click">Владелец</GridViewColumnHeader>
+                                </GridViewColumn.Header>
+                            </GridViewColumn>
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+                <!--<DataGrid x:Name="dgFiles" ItemsSource="{Binding}" AutoGenerateColumns="False" 
+                          MinColumnWidth="20" GridLinesVisibility="None" RowHeight="23"
+                          CanUserReorderColumns="False" CanUserAddRows="False"
+                          CanUserResizeRows="False" CanUserDeleteRows="False"
+                          BorderThickness="0" RowHeaderWidth="0"
+                          CellStyle="{StaticResource DataGridCentering}">
+                    <DataGrid.Columns>
+                        <DataGridCheckBoxColumn CanUserSort="False" CanUserResize="False" Visibility="Visible"/>
+                        <DataGridTextColumn Header="Файл" Binding="{Binding Path=FInfo.Name}" IsReadOnly="True" MinWidth="150"/>
+                        <DataGridTextColumn Header="Размер" Binding="{Binding Path=Size}" IsReadOnly="True" MinWidth="50"/>
+                        <DataGridTextColumn Header="Дата создания" Binding="{Binding Path=FInfo.LastWriteTime}"
+                                            IsReadOnly="True" MinWidth="65"/>
+                        <DataGridTextColumn Header="Дата изменения" Binding="{Binding Path=FInfo.CreationTime}"
+                                            IsReadOnly="True" MinWidth="65"/>
+                    </DataGrid.Columns>
+                </DataGrid>-->
+                <!--<ListBox x:Name="itemsListBox" ItemsSource="{Binding}" AlternationCount="2">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <StackPanel>
@@ -63,9 +146,8 @@
                             </StackPanel>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
-                </ListBox>
+                </ListBox>-->
             </GroupBox>
         </Grid>
     </DockPanel>
-
 </Window>

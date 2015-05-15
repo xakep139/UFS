@@ -1,23 +1,41 @@
 ﻿using System.IO;
+using System.Security.Principal;
 
 namespace UFSApp
 {
-    public class FileItem
+    public class FileItem : PropertyChangedBase
     {
-        public string Name { get; set; }
-
         public FileInfo FInfo { get; set; }
 
-        public long Size
+        public string Size
         {
             get
             {
                 if (FInfo != null)
                 {
-                    return FInfo.Length / 1024;
+                    return (FInfo.Length / 1024).ToString() + " КБ";
                 }
-                return 0;
+                return "0 КБ";
             }
+        }
+
+        public string Owner
+        {
+            get
+            {
+                if (FInfo != null)
+                {
+                    return File.GetAccessControl(FInfo.FullName).GetOwner(typeof(NTAccount)).ToString();
+                }
+                return "<неизвестно>";
+            }
+        }
+
+        private bool _checked;
+        public bool Checked
+        {
+            get { return _checked; }
+            set { SetField(ref _checked, value); }
         }
 
         public string Image { get; set; }

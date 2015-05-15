@@ -2,12 +2,15 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Configuration;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
 using System.Windows.Markup;
 
 namespace UFSApp
@@ -20,15 +23,24 @@ namespace UFSApp
         private const uint maxLevel = 4;
         private const char separator = '|';
 
+        private Sorter listViewSorter = null;
+        private GridViewColumnHeader listViewSortCol = null;
+
+        public ObservableCollection<FolderTreeViewItem> FolderTree { get; set; }
+
+        public ObservableCollection<FileItem> FilesList { get; set; }
+
+
         private string rootPath;
         private string[] years;
         private string[] types;
         private string[] stages;
 
-        private ObservableCollection<FolderTreeViewItem> items = new ObservableCollection<FolderTreeViewItem>();
-
         public MainWindow()
         {
+            FolderTree = new ObservableCollection<FolderTreeViewItem>();
+            FilesList = new ObservableCollection<FileItem>();
+
             InitializeComponent();
 
             FrameworkElement.LanguageProperty.OverrideMetadata(
@@ -40,7 +52,38 @@ namespace UFSApp
 
             LoadConfig();
             ScanDirectory();
-            revisionsTreeView.DataContext = items;
+        }
+
+        private void filesViewSource_Filter(object sender, FilterEventArgs e)
+        {
+            if (String.IsNullOrEmpty(fNameFilter.Text))
+            {
+                e.Accepted = true;
+            }
+            else
+            {
+                var fItem = (e.Item as FileItem);
+                if (fItem != null && fItem.FInfo != null)
+                {
+                    e.Accepted = fItem.FInfo.Name.IndexOf(fNameFilter.Text, StringComparison.OrdinalIgnoreCase) >= 0;
+                }
+                else
+                {
+                    e.Accepted = true;
+                }
+            }
+        }
+
+        private void fNameFilter_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (lvFiles.ItemsSource != null)
+            {
+                var view = CollectionViewSource.GetDefaultView(lvFiles.ItemsSource);
+                if (view != null)
+                {
+                    view.Refresh();
+                }
+            }
         }
 
         private void LoadConfig()
@@ -81,7 +124,7 @@ namespace UFSApp
                 {
                     Directory.CreateDirectory(rootPath);
                 }
-                LoadDirectories(rootPath, items, 1);
+                LoadDirectories(rootPath, FolderTree, 1);
             }
             catch (Exception exc)
             {
@@ -118,8 +161,7 @@ namespace UFSApp
             if (node != null && node.Tag as DirectoryInfo != null)
             {
                 var tag = node.Tag as DirectoryInfo;
-                var list = LoadFiles(tag.FullName);
-                itemsListBox.DataContext = list;
+                LoadFiles(tag.FullName);
             }
         }
 
@@ -141,20 +183,9 @@ namespace UFSApp
             }
         }
 
-        void LoadFiles(string path, ItemCollection Items)
+        void LoadFiles(string path)
         {
-            var files = Directory.GetFiles(path);
-            foreach (var file in files)
-            {
-                var fInfo = new FileInfo(file);
-                var node = new TreeViewItem() { Header = fInfo.Name, Tag = fInfo };
-                Items.Add(node);
-            }
-        }
-
-        List<FileItem> LoadFiles(string path)
-        {
-            var list = new List<FileItem>();
+            FilesList.Clear();
             var files = Directory.GetFiles(path);
             foreach (var file in files)
             {
@@ -163,10 +194,51 @@ namespace UFSApp
                 {
                     continue;
                 }
-                var item = new FileItem() { Name = fInfo.Name, FInfo = fInfo };
-                list.Add(item);
+                var item = new FileItem() { FInfo = fInfo, Checked = false };
+                FilesList.Add(item);
             }
-            return list;
+        }
+
+        private void cbSelectAll_Checked(object sender, RoutedEventArgs e)
+        {
+            bool? idChecked = cbSelectAll.IsChecked;
+            if (idChecked.HasValue)
+            {
+                foreach (var item in lvFiles.Items)
+                {
+                    var file = item as FileItem;
+                    if (file != null)
+                    {
+                        file.Checked = idChecked.Value;
+                    }
+                }
+            }
+        }
+
+        private void lvFilesColumnHeader_Click(object sender, RoutedEventArgs e)
+        {
+            if (listViewSortCol != null)
+            {
+                AdornerLayer.GetAdornerLayer(listViewSortCol).Remove(listViewSorter);
+                lvFiles.Items.SortDescriptions.Clear();
+            }
+
+            var column = (sender as GridViewColumnHeader);
+            if (column != null)
+            {
+                string sortBy = column.Tag.ToString();
+
+                var newDir = ListSortDirection.Ascending;
+                if (listViewSortCol == column && listViewSorter.Direction == newDir)
+                {
+                    newDir = ListSortDirection.Descending;
+                }
+
+                listViewSortCol = column;
+                listViewSorter = new Sorter(listViewSortCol, newDir);
+                AdornerLayer.GetAdornerLayer(listViewSortCol).Add(listViewSorter);
+                lvFiles.Items.SortDescriptions.Add(new SortDescription(sortBy, newDir));
+            }
         }
     }
 }
