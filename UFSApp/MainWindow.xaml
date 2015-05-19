@@ -55,8 +55,9 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <TextBlock Margin="5">Поиск:</TextBlock>
-            <TextBox Grid.Column="1" Name="fNameFilter" TextChanged="fNameFilter_TextChanged" Grid.ColumnSpan="2" Margin="0,0,-0.4,-0.4" />
+            <TextBlock Margin="4">Поиск:</TextBlock>
+            <TextBox Name="fNameFilter" TextChanged="fNameFilter_TextChanged" Height="20"
+                     Grid.Column="1" Grid.ColumnSpan="2" Margin="0,0,-0.4,-0.4" />
         </Grid>
         <StatusBar DockPanel.Dock="Bottom" Height="25">
             <TextBlock>(C) Unified File Storage - Sberbank 2015</TextBlock>
@@ -69,7 +70,7 @@
             <GroupBox Header="Проверки" Margin="0,0,5,0" BorderThickness="0">
                 <TreeView x:Name="revisionsTreeView" ItemsSource="{Binding ElementName=mainWindow, Path=FolderTree}" BorderThickness="0" Margin="0,5,0,0"/>
             </GroupBox>
-            <GridSplitter Width="1"/>
+            <GridSplitter Width="2"/>
             <GroupBox Header="Материалы" Grid.Column="1" Margin="5,0,0,0" BorderThickness="0,1,0,0">
                 <ListView x:Name="lvFiles" ItemsSource="{Binding Source={StaticResource filesViewSource}}" Margin="0,5,0,0" BorderThickness="0">
                     <ListView.View>
