@@ -43,27 +43,35 @@
         </Style>
     </Window.Resources>
     <DockPanel>
-        <TabControl DockPanel.Dock="Top" Height="100">
-            <TabItem Header="Главная"/>
-            <TabItem Header="Проверка"/>
+        <TabControl DockPanel.Dock="Top" Height="100" Margin="5">
+            <!--<TabItem Header="Главная"/>
+            <TabItem Header="Проверка"/>-->
             <TabItem Header="Файл"/>
-            <TabItem Header="Хранилище"/>
+            <TabItem Header="Справка"/>
+            <!--<TabItem Header="Хранилище"/>-->
         </TabControl>
-        <TextBox DockPanel.Dock="Top" Name="fNameFilter" TextChanged="fNameFilter_TextChanged" />
+        <Grid DockPanel.Dock="Top" Margin="5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Margin="5">Поиск:</TextBlock>
+            <TextBox Grid.Column="1" Name="fNameFilter" TextChanged="fNameFilter_TextChanged" Grid.ColumnSpan="2" Margin="0,0,-0.4,-0.4" />
+        </Grid>
         <StatusBar DockPanel.Dock="Bottom" Height="25">
             <TextBlock>(C) Unified File Storage - Sberbank 2015</TextBlock>
         </StatusBar>
-        <Grid>
+        <Grid Margin="5">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1*" MinWidth="190" MaxWidth="190"/>
-                <ColumnDefinition Width="2*" MinWidth="100"/>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="4*"/>
             </Grid.ColumnDefinitions>
-            <GroupBox Header="Проверки">
-                <TreeView x:Name="revisionsTreeView" ItemsSource="{Binding ElementName=mainWindow, Path=FolderTree}" BorderThickness="0" />
+            <GroupBox Header="Проверки" Margin="0,0,5,0" BorderThickness="0">
+                <TreeView x:Name="revisionsTreeView" ItemsSource="{Binding ElementName=mainWindow, Path=FolderTree}" BorderThickness="0" Margin="0,5,0,0"/>
             </GroupBox>
-            <GridSplitter Width="5"/>
-            <GroupBox Header="Материалы" Grid.Column="1">
-                <ListView x:Name="lvFiles" ItemsSource="{Binding Source={StaticResource filesViewSource}}">
+            <GridSplitter Width="1"/>
+            <GroupBox Header="Материалы" Grid.Column="1" Margin="5,0,0,0" BorderThickness="0,1,0,0">
+                <ListView x:Name="lvFiles" ItemsSource="{Binding Source={StaticResource filesViewSource}}" Margin="0,5,0,0" BorderThickness="0">
                     <ListView.View>
                         <GridView x:Name="gvFiles" AllowsColumnReorder="False">
                             <GridViewColumn>
@@ -90,9 +98,9 @@
                                 </GridViewColumn.Header>
                             </GridViewColumn>
 
-                            <GridViewColumn Width="70" DisplayMemberBinding="{Binding Path=Size}">
+                            <GridViewColumn Width="70" DisplayMemberBinding="{Binding Path=SizeString}">
                                 <GridViewColumn.Header>
-                                    <GridViewColumnHeader Tag="Size" Click="lvFilesColumnHeader_Click">Размер</GridViewColumnHeader>
+                                    <GridViewColumnHeader Tag="FInfo.Length" Click="lvFilesColumnHeader_Click">Размер</GridViewColumnHeader>
                                 </GridViewColumn.Header>
                             </GridViewColumn>
 

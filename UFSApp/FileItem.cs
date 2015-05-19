@@ -7,7 +7,7 @@ namespace UFSApp
     {
         public FileInfo FInfo { get; set; }
 
-        public string Size
+        public string SizeString
         {
             get
             {
