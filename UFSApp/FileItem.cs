@@ -15,6 +15,7 @@ namespace UFSApp
                 {
                     return (FInfo.Length / 1024).ToString() + " КБ";
                 }
+
                 return "0 КБ";
             }
         }
@@ -25,8 +26,9 @@ namespace UFSApp
             {
                 if (FInfo != null)
                 {
-                    return File.GetAccessControl(FInfo.FullName).GetOwner(typeof(NTAccount)).ToString();
+                    return FInfo.GetAccessControl().GetOwner(typeof(NTAccount)).ToString();
                 }
+
                 return "<неизвестно>";
             }
         }

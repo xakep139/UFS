@@ -60,7 +60,7 @@
                      Grid.Column="1" Grid.ColumnSpan="2" Margin="0,0,-0.4,-0.4" />
         </Grid>
         <StatusBar DockPanel.Dock="Bottom" Height="25">
-            <TextBlock>(C) Unified File Storage - Sberbank 2015</TextBlock>
+            <TextBlock>(C) Unified File Storage - 2015</TextBlock>
         </StatusBar>
         <Grid Margin="5">
             <Grid.ColumnDefinitions>

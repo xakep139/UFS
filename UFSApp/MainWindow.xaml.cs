@@ -1,6 +1,6 @@
-﻿using System;
+﻿using Microsoft.Extensions.Configuration;
+using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Configuration;
@@ -29,7 +29,6 @@ namespace UFSApp
         public ObservableCollection<FolderTreeViewItem> FolderTree { get; set; }
 
         public ObservableCollection<FileItem> FilesList { get; set; }
-
 
         private string rootPath;
         private string[] years;
@@ -65,7 +64,7 @@ namespace UFSApp
                 var fItem = (e.Item as FileItem);
                 if (fItem != null && fItem.FInfo != null)
                 {
-                    e.Accepted = fItem.FInfo.Name.IndexOf(fNameFilter.Text, StringComparison.OrdinalIgnoreCase) >= 0;
+                    e.Accepted = fItem.FInfo.Name.Contains(fNameFilter.Text, StringComparison.OrdinalIgnoreCase);
                 }
                 else
                 {
@@ -87,33 +86,41 @@ namespace UFSApp
         }
 
         private void LoadConfig()
-        {
-            rootPath = ConfigurationManager.AppSettings["RootPath"];
+		{
+			var builder = new ConfigurationBuilder()
+			 .SetBasePath(Directory.GetCurrentDirectory())
+			 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false);
+
+			var configuration = builder.Build();
+			rootPath = configuration["RootPath"];
             if (string.IsNullOrEmpty(rootPath))
             {
                 rootPath = @"C:\Проверки";
             }
 
-            var tmp = ConfigurationManager.AppSettings["Years"];
+            var tmp = configuration["Years"];
             if (string.IsNullOrEmpty(tmp))
             {
                 tmp = "2012|2013|2014|2015|2016";
-            }
-            years = tmp.Split(separator);
+			}
 
-            tmp = ConfigurationManager.AppSettings["ControlTypes"];
+			years = tmp.Split(separator);
+
+			tmp = configuration["ControlTypes"];
             if (string.IsNullOrEmpty(tmp))
             {
                 tmp = "Мониторинг|ТЗ|ЦЗ";
-            }
-            types = tmp.Split(separator);
+			}
 
-            tmp = ConfigurationManager.AppSettings["Stages"];
+			types = tmp.Split(separator);
+
+			tmp = configuration["Stages"];
             if (string.IsNullOrEmpty(tmp))
             {
                 tmp = "1. Подготовка|2. Проведение|3. Итоги|4. Реализация|5. Контроль";
-            }
-            stages = tmp.Split(separator);
+			}
+
+			stages = tmp.Split(separator);
         }
 
         void ScanDirectory()
@@ -122,8 +129,9 @@ namespace UFSApp
             {
                 if (!Directory.Exists(rootPath))
                 {
-                    Directory.CreateDirectory(rootPath);
+                    var createdDir = Directory.CreateDirectory(rootPath);
                 }
+
                 LoadDirectories(rootPath, FolderTree, 1);
             }
             catch (Exception exc)
@@ -142,6 +150,7 @@ namespace UFSApp
                 {
                     continue;
                 }
+
                 var node = new FolderTreeViewItem() { Header = dInfo.Name, Tag = dInfo };
                 if (level < maxLevel)
                 {
@@ -151,6 +160,7 @@ namespace UFSApp
                 {
                     node.Selected += node_Selected;
                 }
+
                 Items.Add(node);
             }
         }
@@ -167,15 +177,14 @@ namespace UFSApp
 
         private bool CheckDirLevel(string dirName, uint level)
         {
-            uint tmp;
-            switch (level)
+			switch (level)
             {
                 case 1: //Год проверки
                     return years.Contains(dirName);
                 case 2: //Тип проверки
                     return types.Contains(dirName);
                 case 3: //Номер проверки
-                    return uint.TryParse(dirName, out tmp);
+                    return uint.TryParse(dirName, out _);
                 case 4: //Этап проверки
                     return stages.Contains(dirName);
                 default:
