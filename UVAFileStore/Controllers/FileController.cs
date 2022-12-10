@@ -4,14 +4,23 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Web;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Hosting;
 using UVAFileStore.Models;
 
 namespace UVAFileStore.Controllers
 {
     public class FileController : Controller
     {
+        private readonly IWebHostEnvironment _webHostEnvironment;
+
+        public FileController(IWebHostEnvironment webHostEnvironment)
+        {
+            _webHostEnvironment = webHostEnvironment;
+        }
+
         // GET: File
         public ActionResult Index()
         {
@@ -24,18 +33,20 @@ namespace UVAFileStore.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> Upload(string fileName, HttpPostedFileWrapper uploadFile)
+        public async Task<ActionResult> Upload(string fileName, IFormFile uploadFile)
         {
-            Encoding ecode = Request.ContentEncoding;
-            //var upload = uploadFile;
-            if (uploadFile != null && uploadFile.ContentLength > 0)
+            if (uploadFile != null && uploadFile.Length > 0)
             {
                 if (string.IsNullOrEmpty(fileName))
                 {
-                    fileName = System.IO.Path.GetFileName(uploadFile.FileName);
+                    fileName = Path.GetFileName(uploadFile.FileName);
                 }
+
+                var path = Path.Combine(_webHostEnvironment.WebRootPath, "Files/", fileName);
+                using var serverFileStream = new FileStream(path, FileMode.CreateNew, FileAccess.Write);
+
                 // сохраняем файл в папку Files в проекте
-                await Task.Run(() => { uploadFile.SaveAs(Server.MapPath("~/App_Data/Files/" + fileName)); });
+                await uploadFile.CopyToAsync(serverFileStream);
             }
 
             ViewBag.Message = "файл загружен";
@@ -48,19 +59,20 @@ namespace UVAFileStore.Controllers
         }
 
         [HttpPost]
-        public ActionResult Uploads(IEnumerable<HttpPostedFileBase> uploads)
+        public async Task<ActionResult> Uploads(IEnumerable<IFormFile> uploads)
         {
-            if (uploads != null && uploads.Count() > 0)
+            if (uploads != null && uploads.Any())
             {
                 foreach (var file in uploads)
                 {
                     if (file != null)
-                    {
-                        // получаем имя файла
-                        string fileName = System.IO.Path.GetFileName(file.FileName);
-                        // сохраняем файл в папку Files в проекте
-                        file.SaveAs(Server.MapPath("~/App_Data/Files/" + fileName));
-                    }
+					{
+						var path = Path.Combine(_webHostEnvironment.WebRootPath, "Files/", file.FileName);
+						using var serverFileStream = new FileStream(path, FileMode.CreateNew, FileAccess.Write);
+
+						// сохраняем файл в папку Files в проекте
+						await file.CopyToAsync(serverFileStream);
+					}
                 }
             }
             return RedirectToAction("Index");
@@ -72,19 +84,20 @@ namespace UVAFileStore.Controllers
         }
 
         [HttpPost]
-        public JsonResult AjaxUpload()
+        public async Task<JsonResult> AjaxUpload()
         {
-            foreach (string file in Request.Files)
+            foreach (var file in HttpContext.Request.Form.Files)
             {
-                var upload = Request.Files[file];
-                if (upload != null)
-                {
-                    // получаем имя файла
-                    string fileName = System.IO.Path.GetFileName(upload.FileName);
-                    // сохраняем файл в папку Files в проекте
-                    upload.SaveAs(Server.MapPath("~/App_Data/Files/" + fileName));
-                }
+                if (file != null)
+				{
+					var path = Path.Combine(_webHostEnvironment.WebRootPath, "Files/", file.FileName);
+					using var serverFileStream = new FileStream(path, FileMode.CreateNew, FileAccess.Write);
+
+					// сохраняем файл в папку Files в проекте
+					await file.CopyToAsync(serverFileStream);
+				}
             }
+
             return Json("файл загружен");
         }
 
@@ -94,20 +107,22 @@ namespace UVAFileStore.Controllers
         }
 
         [HttpPost]
-        public void Upload3(IEnumerable<HttpPostedFileBase> files)
+        public async Task Upload3(IEnumerable<IFormFile> files)
         {
             if (files != null)
             {
                 foreach (var file in files)
                 {
-                    if (file != null && file.ContentLength > 0)
-                    {
-                        // получаем имя файла
-                        string fileName = System.IO.Path.GetFileName(file.FileName);
-                        // сохраняем файл в папку Files в проекте
-                        file.SaveAs(Server.MapPath("~/App_Data/Files/" + fileName));
-                    }
+                    if (file != null && file.Length > 0)
+					{
+						var path = Path.Combine(_webHostEnvironment.WebRootPath, "Files/", file.FileName);
+						using var serverFileStream = new FileStream(path, FileMode.CreateNew, FileAccess.Write);
+
+						// сохраняем файл в папку Files в проекте
+						await file.CopyToAsync(serverFileStream);
+					}
                 }
+
                 ViewBag.Message = "файл загружен";
             }
         }

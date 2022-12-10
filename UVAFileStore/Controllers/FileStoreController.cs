@@ -1,17 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
+using System.IO;
 using System.Threading.Tasks;
-using System.Web;
-using System.Web.Http;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace UVAFileStore.Controllers
 {
-    public class FileStoreController : ApiController
+    public class FileStoreController : ControllerBase
     {
+		private readonly IWebHostEnvironment _webHostEnvironment;
+
+		public FileStoreController(IWebHostEnvironment webHostEnvironment)
+        {
+			_webHostEnvironment = webHostEnvironment;
+		}
+
         // GET: api/Default
         public IEnumerable<string> Get()
         {
@@ -25,33 +30,34 @@ namespace UVAFileStore.Controllers
         }
 
         // POST: api/Default
-        public async Task<HttpResponseMessage> Upload(string fileName, string Desc)
+        public async Task<IActionResult> Upload(string fileName, string Desc)
         {
             string userName = User.Identity.Name;
 
             // Check if the request contains multipart/form-data.
-            if (!Request.Content.IsMimeMultipartContent())
+            if (!Request.HasFormContentType && Request.Form.Files.Count > 0)
             {
-                throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
+                return StatusCode(StatusCodes.Status415UnsupportedMediaType);
             }
 
             try
             {
-                var uploadFile = HttpContext.Current.Request.Files[0];
+                var uploadFile = Request.Form.Files[0];
 
-                if (uploadFile != null && uploadFile.ContentLength > 0)
+                if (uploadFile != null && uploadFile.Length > 0)
                 {
-                    string filPath = HttpContext.Current.Server.MapPath("~/App_Data/Files/" + fileName);
+					var path = Path.Combine(_webHostEnvironment.WebRootPath, "Files/", fileName);
+					using var serverFileStream = new FileStream(path, FileMode.CreateNew, FileAccess.Write);
 
-                    // сохраняем файл в папку Files в проекте
-                    await Task.Run(() => { uploadFile.SaveAs(filPath); });
-                }
+					// сохраняем файл в папку Files в проекте
+					await uploadFile.CopyToAsync(serverFileStream);
+				}
 
-                return Request.CreateResponse(HttpStatusCode.OK);
+                return Ok();
             }
             catch (Exception exc)
             {
-                return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
+                return StatusCode(500, new { Error = exc });
             }
         }
 
